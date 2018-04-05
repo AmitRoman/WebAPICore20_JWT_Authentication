@@ -1,0 +1,95 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+    <script src="~/wwwroot/lib/jquery/dist/jquery.js"></script>
+    <script src="~/wwwroot/lib/bootstrap/dist/js/bootstrap.js"></script>
+    <link href="~/wwwroot/lib/bootstrap/dist/css/bootstrap.css" rel="stylesheet" />
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#btndata").hide();
+
+
+            var loginUrl = "http://localhost:62235/Token/CreateToken";
+            var apiUrl = "http://localhost:62235/api/values";
+
+            console.log(localStorage.getItem("token"));
+            if (localStorage.getItem("token") === null) {
+                $("#btnlogin").click(function () {
+                    alert("hello");
+                    $.ajax({
+                        type: 'get',
+                        url: loginUrl
+
+                    }).done(function (data) {
+
+                        var token = data.access_token;
+                        localStorage.setItem("token", token);
+                        $("#btndata").show();
+                        $("#btnlogin").hide();
+                    }).fail(function (error) {
+
+                        console.log(error);
+                    });
+                });
+            }
+
+            $("#btndata").click(function () {
+
+                $.ajax({
+                    type: 'get',
+                    url: apiUrl,
+                    beforeSend: function (xhr) {
+                        //send token with request, headers are case sensitive
+                        xhr.setRequestHeader("Authorization", "Bearer " + localStorage.getItem("token"))
+                    }
+
+                }).done(function (data) {
+
+                    for (var i = 0; i < data.length; i++) {
+
+                        var row = "<tr><td>" + data[i] + "</td></tr>";
+                        $("#tablebody").append(row);
+                    }
+                }).fail(function (error) {
+
+                    console.log(error);
+                });
+            })
+
+        });
+    </script>
+</head>
+<body>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4"></div>
+            <div class="col-lg-4">
+                <button id="btnlogin" class="btn btn-success">Login</button>
+                <button id="btndata" class="btn btn-success">Get Values</button>
+            </div>
+            <div class="col-lg-4"></div>
+
+
+        </div>
+        <div class="row">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <td>All Values</td>
+                    </tr>
+                </thead>
+                <tbody id="tablebody"></tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
